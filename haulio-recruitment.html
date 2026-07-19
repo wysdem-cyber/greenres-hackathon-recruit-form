@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Haulio — Join the Team</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@700;800&family=Rajdhani:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --ink:#0F2027;
+    --paper:#DCE6E2;
+    --paper-deep:#C7D4CD;
+    --card:#F4F7F4;
+    --flood:#2C6E8E;
+    --flood-deep:#1B4A61;
+    --hazard:#E8A23C;
+    --hazard-deep:#C67E1F;
+    --green:#4C7A5E;
+    --danger:#B4432F;
+    --line: rgba(15,32,39,0.14);
+    --shadow: 0 18px 40px rgba(15,32,39,0.16);
+    --display: 'Archivo Expanded', sans-serif;
+    --gauge: 'Rajdhani', sans-serif;
+    --body: 'IBM Plex Sans', sans-serif;
+    --mono: 'IBM Plex Mono', monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:var(--paper);
+    background-image:
+      linear-gradient(180deg, rgba(15,32,39,0.05) 1px, transparent 1px);
+    background-size: 100% 42px;
+    color:var(--ink);
+    font-family:var(--body);
+    overflow:hidden;
+  }
+  #app{height:100vh; width:100vw; position:relative;}
+  .view{position:absolute; inset:0; display:none;}
+  .view.active{display:flex;}
+  ::selection{background:var(--hazard); color:var(--ink);}
+
+  /* ---------- utility stripe ---------- */
+  .stripe{
+    height:10px; width:100%;
+    background: repeating-linear-gradient(135deg, var(--hazard), var(--hazard) 14px, var(--ink) 14px, var(--ink) 28px);
+    flex-shrink:0;
+  }
+
+  /* ---------- LANDING ---------- */
+  #landing{flex-direction:column;}
+  .landing-body{
+    flex:1; display:flex; align-items:stretch; justify-content:center;
+    padding: 3vh 5vw; gap: 4vw;
+  }
+  .landing-main{
+    flex: 1 1 640px; max-width:720px;
+    display:flex; flex-direction:column; justify-content:center;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--flood-deep); display:flex; align-items:center; gap:10px; margin-bottom:18px;
+  }
+  .eyebrow::before{content:""; width:22px; height:2px; background:var(--hazard-deep); display:inline-block;}
+  h1.headline{
+    font-family:var(--display); font-weight:800;
+    font-size: clamp(40px, 6vw, 76px);
+    line-height:0.96; letter-spacing:-0.01em; margin:0 0 20px 0;
+    color:var(--ink);
+  }
+  h1.headline em{
+    font-style:normal; color:var(--flood-deep);
+    text-decoration: underline; text-decoration-color:var(--hazard);
+    text-decoration-thickness:6px; text-underline-offset:6px;
+  }
+  .sub{
+    font-size: clamp(14px,1.5vw,17px); line-height:1.55; max-width:56ch;
+    color:rgba(15,32,39,0.78); margin-bottom:26px;
+  }
+  .facts{
+    display:flex; flex-wrap:wrap; gap:10px; margin-bottom:30px;
+  }
+  .fact{
+    font-family:var(--mono); font-size:11.5px; letter-spacing:.03em;
+    border:1.5px solid var(--ink); padding:7px 11px;
+    background:var(--card);
+  }
+  .fact b{color:var(--flood-deep);}
+  .cta-row{display:flex; align-items:center; gap:18px; flex-wrap:wrap;}
+  button, .btn{font-family:var(--body); cursor:pointer;}
+  .btn-apply{
+    font-family:var(--gauge); font-weight:700; font-size:19px; letter-spacing:.02em;
+    background:var(--ink); color:var(--paper); border:none;
+    padding:16px 30px; display:inline-flex; align-items:center; gap:12px;
+    box-shadow: 4px 4px 0 var(--hazard);
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  .btn-apply:hover{ transform: translate(-2px,-2px); box-shadow: 6px 6px 0 var(--hazard);}
+  .btn-apply:active{ transform: translate(0,0); box-shadow: 2px 2px 0 var(--hazard);}
+  .roles-hint{font-family:var(--mono); font-size:12px; color:rgba(15,32,39,0.6);}
+
+  /* gauge visual on the right */
+  .gauge-wrap{
+    flex: 0 0 auto; width: min(220px, 22vw); display:flex; flex-direction:column; align-items:center;
+    justify-content:center; position:relative;
+  }
+  .gauge{
+    width:100%; height:70vh; max-height:520px; border:2px solid var(--ink);
+    background:var(--card); position:relative; overflow:hidden;
+  }
+  .gauge-fill{
+    position:absolute; left:0; right:0; bottom:0; height:38%;
+    background: linear-gradient(180deg, var(--flood), var(--flood-deep));
+    animation: rise 5s ease-in-out infinite alternate;
+  }
+  .gauge-fill::before{
+    content:""; position:absolute; top:-6px; left:0; right:0; height:12px;
+    background: repeating-linear-gradient(90deg, rgba(255,255,255,0.35) 0 8px, transparent 8px 16px);
+  }
+  @keyframes rise{ from{height:30%;} to{height:64%;} }
+  .gauge-ticks{position:absolute; inset:0; display:flex; flex-direction:column; justify-content:space-between; padding:10px 0;}
+  .gauge-ticks span{
+    display:block; height:1px; background:var(--line); position:relative;
+  }
+  .gauge-label{
+    font-family:var(--mono); font-size:10px; letter-spacing:.08em; margin-top:12px;
+    color:rgba(15,32,39,0.55); text-align:center; text-transform:uppercase;
+  }
+  @media (prefers-reduced-motion: reduce){ .gauge-fill{ animation:none; height:48%; } }
+
+  .admin-link{
+    position:absolute; bottom:14px; right:18px;
+    font-family:var(--mono); font-size:11px; color:rgba(15,32,39,0.45);
+    text-decoration:none; letter-spacing:.06em; background:none; border:none; padding:4px;
+  }
+  .admin-link:hover{color:var(--flood-deep);}
+
+  @media (max-width: 860px){
+    .landing-body{flex-direction:column-reverse; padding:3vh 6vw; gap:2vh; overflow-y:auto;}
+    .gauge-wrap{width:100%;}
+    .gauge{height:14vh; max-height:none;}
+    h1.headline{font-size: clamp(34px, 9vw, 54px);}
+  }
+
+  /* ---------- FORM ---------- */
+  #formView{ align-items:center; justify-content:center; padding:4vh 4vw; }
+  .form-card{
+    width:min(560px, 100%); background:var(--card); border:2px solid var(--ink);
+    box-shadow: var(--shadow); display:flex; flex-direction:column; max-height:92vh;
+  }
+  .progress-wrap{ padding:20px 26px 0 26px; }
+  .progress-meta{
+    display:flex; justify-content:space-between; align-items:baseline;
+    font-family:var(--mono); font-size:11px; letter-spacing:.06em; color:rgba(15,32,39,0.55);
+    margin-bottom:8px; text-transform:uppercase;
+  }
+  .progress-track{
+    height:14px; width:100%; border:1.5px solid var(--ink); background:var(--paper);
+    display:flex; gap:2px; padding:2px;
+  }
+  .progress-seg{
+    flex:1; background:transparent; transition: background .35s ease;
+  }
+  .progress-seg.filled{ background: var(--flood); }
+  .form-body{ padding:30px 30px 10px 30px; flex:1; overflow-y:auto; }
+  .step{display:none; flex-direction:column; gap:16px; animation: slidein .3s ease;}
+  .step.active{display:flex;}
+  @keyframes slidein{ from{opacity:0; transform:translateX(14px);} to{opacity:1; transform:translateX(0);} }
+  .q-eyebrow{ font-family:var(--mono); font-size:11px; color:var(--flood-deep); letter-spacing:.08em; text-transform:uppercase; }
+  .q-title{ font-family:var(--display); font-weight:800; font-size:24px; line-height:1.15; margin:0; }
+  .q-help{ font-size:13px; color:rgba(15,32,39,0.6); margin-top:-8px; }
+  input[type=text], input[type=tel], input[type=url], textarea{
+    font-family:var(--body); font-size:16px; padding:13px 14px; border:1.5px solid var(--ink);
+    background:var(--paper); color:var(--ink); width:100%; outline:none;
+  }
+  input:focus, textarea:focus{ border-color:var(--flood-deep); box-shadow: 0 0 0 3px rgba(44,110,142,0.18);}
+  textarea{ resize:vertical; min-height:88px; font-size:15px; }
+  .option-list{ display:flex; flex-direction:column; gap:10px; }
+  .option{
+    border:1.5px solid var(--ink); background:var(--paper); padding:14px 16px;
+    cursor:pointer; display:flex; align-items:center; gap:12px; font-size:15px;
+  }
+  .option:hover{ background:#cfdbd5; }
+  .option.selected{ background:var(--ink); color:var(--paper); }
+  .option .emoji{ font-size:18px; }
+  .charcount{ font-family:var(--mono); font-size:11px; text-align:right; color:rgba(15,32,39,0.45); }
+  .nav-row{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:18px 30px 26px 30px; border-top:1px solid var(--line); gap:12px;
+  }
+  .nav-btn{
+    font-family:var(--gauge); font-weight:600; font-size:15px;
+    border:1.5px solid var(--ink); background:var(--card); padding:10px 18px;
+  }
+  .nav-btn.primary{ background:var(--ink); color:var(--paper); }
+  .nav-btn:disabled{ opacity:0.35; cursor:not-allowed; }
+  .nav-btn:not(:disabled):hover{ background:var(--hazard); border-color:var(--hazard);}
+  .nav-btn.primary:not(:disabled):hover{ background:var(--flood-deep); color:#fff; border-color:var(--flood-deep);}
+  .close-x{
+    position:absolute; top:16px; right:18px; background:none; border:none; font-family:var(--mono);
+    font-size:13px; color:rgba(15,32,39,0.5);
+  }
+  .review-list{ display:flex; flex-direction:column; gap:10px; font-size:13.5px; }
+  .review-row{ display:flex; justify-content:space-between; gap:12px; border-bottom:1px dashed var(--line); padding-bottom:8px;}
+  .review-row b{ font-family:var(--mono); font-weight:500; color:rgba(15,32,39,0.5); font-size:11px; text-transform:uppercase;}
+  .review-row span{ text-align:right; max-width:60%; }
+  .status-msg{ font-family:var(--mono); font-size:12px; padding:10px 12px; border:1px solid var(--line); background:var(--paper);}
+  .status-msg.error{ border-color:var(--danger); color:var(--danger); }
+  .status-msg.ok{ border-color:var(--green); color:var(--green); }
+  .success-wrap{ text-align:center; padding:20px 0; display:flex; flex-direction:column; gap:14px; align-items:center;}
+  .success-wrap .mark{ font-size:44px; }
+
+  /* ---------- ADMIN ---------- */
+  #adminView{ align-items:center; justify-content:center; padding:4vh 4vw; }
+  .admin-card{ width:min(420px,100%); background:var(--card); border:2px solid var(--ink); box-shadow:var(--shadow); padding:34px; position:relative;}
+  #adminDash{ width:min(1080px,96vw); height:92vh; background:var(--card); border:2px solid var(--ink); box-shadow:var(--shadow); display:none; flex-direction:column; }
+  .admin-header{ display:flex; justify-content:space-between; align-items:center; padding:18px 26px; border-bottom:2px solid var(--ink); }
+  .admin-header h2{ font-family:var(--display); margin:0; font-size:22px; }
+  .tab-row{ display:flex; gap:8px; padding:14px 26px 0 26px; }
+  .tab{ font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.05em; border:1px solid var(--ink); background:var(--paper); padding:7px 12px; cursor:pointer; }
+  .tab.active{ background:var(--ink); color:var(--paper); }
+  .admin-table-wrap{ flex:1; overflow:auto; padding:16px 26px 26px 26px; }
+  table{ width:100%; border-collapse:collapse; font-size:13px; }
+  th{ text-align:left; font-family:var(--mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:rgba(15,32,39,0.55); border-bottom:2px solid var(--ink); padding:8px 10px; position:sticky; top:0; background:var(--card); }
+  td{ padding:9px 10px; border-bottom:1px solid var(--line); vertical-align:top; }
+  tr:hover td{ background:rgba(44,110,142,0.06); }
+  .pill{ font-family:var(--mono); font-size:10px; padding:3px 7px; border:1px solid var(--ink); white-space:nowrap;}
+  .pill.yes{ background:var(--green); color:#fff; border-color:var(--green);}
+  .pill.no{ background:var(--danger); color:#fff; border-color:var(--danger);}
+  a.linkcell{ color:var(--flood-deep); }
+  .empty-state{ text-align:center; padding:60px 20px; color:rgba(15,32,39,0.5); font-family:var(--mono); font-size:13px;}
+  label{ font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:rgba(15,32,39,0.6); display:block; margin-bottom:6px;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ===================== LANDING ===================== -->
+  <div id="landing" class="view active">
+    <div class="stripe"></div>
+    <div class="landing-body">
+      <div class="landing-main">
+        <div class="eyebrow">GreenRes &middot; Africa Climate Collaborative × Mastercard Foundation &middot; up to $7,000</div>
+        <h1 class="headline">Apply to join<br>the <em>team</em>.</h1>
+        <p class="sub">We're building <strong>Haulio</strong> — a flood-prevention platform for Accra, powered by youth-run recycling micro-businesses. The concept, brand identity, and full technical spec are already locked. We need three people to finish the build before the deadline.</p>
+        <div class="facts">
+          <div class="fact"><b>✓</b> Concept validated</div>
+          <div class="fact"><b>✓</b> Technical spec locked</div>
+          <div class="fact"><b>✓</b> Brand identity built</div>
+          <div class="fact"><b>$7K</b> real prize stake</div>
+        </div>
+        <div class="cta-row">
+          <button class="btn-apply" onclick="goTo('form')">Apply now →</button>
+          <span class="roles-hint">Motion Designer · Business &amp; Pitch · Developer</span>
+        </div>
+      </div>
+      <div class="gauge-wrap">
+        <div class="gauge">
+          <div class="gauge-ticks"><span></span><span></span><span></span><span></span><span></span></div>
+          <div class="gauge-fill"></div>
+        </div>
+        <div class="gauge-label">Accra flood risk, rising</div>
+      </div>
+    </div>
+    <button class="admin-link" onclick="goTo('admin')">admin ↗</button>
+  </div>
+
+  <!-- ===================== FORM ===================== -->
+  <div id="formView" class="view">
+    <div class="form-card">
+      <button class="close-x" onclick="goTo('landing')" style="align-self:flex-end; margin:10px 14px 0 0;">close ✕</button>
+      <div class="progress-wrap">
+        <div class="progress-meta"><span id="progLabel">Step 1 of 8</span><span id="progPct">13%</span></div>
+        <div class="progress-track" id="progressTrack"></div>
+      </div>
+      <div class="form-body" id="formBody">
+        <!-- steps injected by JS -->
+      </div>
+      <div class="nav-row">
+        <button class="nav-btn" id="prevBtn" onclick="prevStep()">← Back</button>
+        <button class="nav-btn primary" id="nextBtn" onclick="nextStep()">Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== ADMIN ===================== -->
+  <div id="adminView" class="view">
+    <div class="admin-card" id="adminLoginCard">
+      <button class="close-x" onclick="goTo('landing')">close ✕</button>
+      <div class="eyebrow" style="margin-bottom:16px;">Admin access</div>
+      <p style="font-size:13px; color:rgba(15,32,39,0.65); margin-top:-6px;">Sign in with the Supabase admin account to view applications.</p>
+      <div style="display:flex; flex-direction:column; gap:14px; margin-top:10px;">
+        <div>
+          <label>Email</label>
+          <input type="text" id="adminEmail" placeholder="you@example.com">
+        </div>
+        <div>
+          <label>Password</label>
+          <input type="text" id="adminPassword" placeholder="••••••••" style="font-family:var(--mono);">
+        </div>
+        <button class="nav-btn primary" style="width:100%;" onclick="adminLogin()">Sign in</button>
+        <div id="adminStatus"></div>
+      </div>
+    </div>
+
+    <div id="adminDash">
+      <div class="admin-header">
+        <h2>Haulio — Applications</h2>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <span id="adminEmailLabel" style="font-family:var(--mono); font-size:11px; color:rgba(15,32,39,0.5);"></span>
+          <button class="nav-btn" onclick="adminLogout()">Sign out</button>
+        </div>
+      </div>
+      <div class="tab-row" id="tabRow">
+        <button class="tab active" data-role="all" onclick="filterRole('all')">All</button>
+        <button class="tab" data-role="Motion Designer" onclick="filterRole('Motion Designer')">Motion</button>
+        <button class="tab" data-role="Business & Pitch" onclick="filterRole('Business & Pitch')">Business</button>
+        <button class="tab" data-role="Developer" onclick="filterRole('Developer')">Dev</button>
+      </div>
+      <div class="admin-table-wrap" id="adminTableWrap">
+        <div class="empty-state">Loading applications…</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* =======================================================================
+   CONFIG — fill these in from your Supabase project before this works.
+   Project Settings → API → Project URL / anon public key.
+   ======================================================================= */
+const SUPABASE_URL = "YOUR_SUPABASE_URL";        // e.g. https://xxxx.supabase.co
+const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
+const TABLE_NAME = "applications";
+
+let supabaseClient = null;
+try {
+  if (SUPABASE_URL !== "YOUR_SUPABASE_URL" && window.supabase) {
+    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  }
+} catch(e){ console.error(e); }
+
+/* ---------------- view switching ---------------- */
+function goTo(view){
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById(view === 'form' ? 'formView' : view === 'admin' ? 'adminView' : 'landing').classList.add('active');
+  if(view === 'form'){ renderStep(); }
+  if(view === 'admin'){ checkAdminSession(); }
+}
+
+/* ---------------- form config ---------------- */
+const roleOptions = [
+  {v:"Motion Designer", label:"Motion Designer", emoji:"🎬"},
+  {v:"Business & Pitch", label:"Business & Pitch Lead", emoji:"📊"},
+  {v:"Developer", label:"Developer", emoji:"💻"},
+];
+
+function roleQuestion(){
+  const role = state.data.role;
+  if(role === "Motion Designer") return {
+    title:"Send one thing you've animated or edited.",
+    help:"Even rough. Link to a drive file, Instagram reel, TikTok, anything real.",
+    key:"role_answer", type:"url", placeholder:"https://..."
+  };
+  if(role === "Business & Pitch") return {
+    title:"In 3 sentences: how would you pitch a free app to users when the actual customer paying for it is a company?",
+    help:"We want to see if you already think in our model, not just that you're good at talking.",
+    key:"role_answer", type:"textarea", placeholder:"Type your answer…"
+  };
+  if(role === "Developer") return {
+    title:"Have you shipped anything to a real user before, even small?",
+    help:"What was it, and what did you build it with?",
+    key:"role_answer", type:"textarea", placeholder:"Type your answer…"
+  };
+  return {title:"Pick a role first", help:"", key:"role_answer", type:"text"};
+}
+
+function buildSteps(){
+  return [
+    { key:"full_name", type:"text", eyebrow:"01 · Basics", title:"What's your name?", placeholder:"Full name" },
+    { key:"course_year", type:"text", eyebrow:"02 · Basics", title:"What are you studying, and what year?", placeholder:"e.g. BSc Computer Science, Year 3" },
+    { key:"phone", type:"tel", eyebrow:"03 · Basics", title:"Phone / WhatsApp number", placeholder:"+233..." },
+    { key:"role", type:"role", eyebrow:"04 · Role", title:"Which role are you applying for?" },
+    { key:"portfolio", type:"url", eyebrow:"05 · Proof", title:"Link to relevant work", help:"Portfolio, GitHub, a deck you've made — anything real. No link is a soft flag, not an auto-reject.", placeholder:"https://...", optional:true },
+    { key:"role_answer", type:"dynamic", eyebrow:"06 · Role check" },
+    { key:"availability", type:"bool", eyebrow:"07 · Commitment", title:"Can you commit real hours for a 4-day intensive sprint if we make top 5?", help:"Be honest — this is the one that matters most." },
+    { key:"why", type:"textarea", eyebrow:"08 · Motivation", title:"Why this project specifically?", help:"Not \"why a hackathon\" — why Haulio. 2–3 sentences.", placeholder:"Type your answer…" },
+    { key:"review", type:"review", eyebrow:"09 · Review", title:"Check everything, then submit." },
+  ];
+}
+
+let state = { step:0, data:{}, submitting:false };
+
+function renderStep(){
+  const steps = buildSteps();
+  const total = steps.length;
+  const s = steps[state.step];
+  const body = document.getElementById('formBody');
+  body.innerHTML = "";
+
+  // progress
+  document.getElementById('progLabel').textContent = `Step ${state.step+1} of ${total}`;
+  document.getElementById('progPct').textContent = Math.round(((state.step+1)/total)*100) + "%";
+  const track = document.getElementById('progressTrack');
+  track.innerHTML = "";
+  for(let i=0;i<total;i++){
+    const seg = document.createElement('div');
+    seg.className = 'progress-seg' + (i <= state.step ? ' filled' : '');
+    track.appendChild(seg);
+  }
+
+  const wrap = document.createElement('div');
+  wrap.className = 'step active';
+
+  if(s.type === 'review'){
+    wrap.innerHTML = renderReview();
+    body.appendChild(wrap);
+  } else {
+    const eyebrow = document.createElement('div');
+    eyebrow.className = 'q-eyebrow';
+    eyebrow.textContent = s.eyebrow;
+    wrap.appendChild(eyebrow);
+
+    let questionMeta = s;
+    if(s.type === 'dynamic'){ questionMeta = Object.assign({}, s, roleQuestion()); }
+
+    const title = document.createElement('h3');
+    title.className = 'q-title';
+    title.textContent = questionMeta.title;
+    wrap.appendChild(title);
+
+    if(questionMeta.help){
+      const help = document.createElement('div');
+      help.className = 'q-help';
+      help.textContent = questionMeta.help;
+      wrap.appendChild(help);
+    }
+
+    if(questionMeta.type === 'text' || questionMeta.type === 'tel' || questionMeta.type === 'url'){
+      const input = document.createElement('input');
+      input.type = questionMeta.type === 'tel' ? 'tel' : (questionMeta.type === 'url' ? 'url' : 'text');
+      input.placeholder = questionMeta.placeholder || "";
+      input.value = state.data[questionMeta.key] || "";
+      input.oninput = (e) => { state.data[questionMeta.key] = e.target.value; updateNextEnabled(); };
+      input.id = "input_" + questionMeta.key;
+      wrap.appendChild(input);
+      setTimeout(()=>input.focus(), 50);
+    }
+
+    if(questionMeta.type === 'textarea'){
+      const ta = document.createElement('textarea');
+      ta.placeholder = questionMeta.placeholder || "";
+      ta.value = state.data[questionMeta.key] || "";
+      ta.oninput = (e) => { state.data[questionMeta.key] = e.target.value; updateNextEnabled(); };
+      wrap.appendChild(ta);
+      setTimeout(()=>ta.focus(), 50);
+    }
+
+    if(questionMeta.type === 'role'){
+      const list = document.createElement('div');
+      list.className = 'option-list';
+      roleOptions.forEach(opt => {
+        const el = document.createElement('div');
+        el.className = 'option' + (state.data.role === opt.v ? ' selected' : '');
+        el.innerHTML = `<span class="emoji">${opt.emoji}</span><span>${opt.label}</span>`;
+        el.onclick = () => { state.data.role = opt.v; state.data.role_answer=""; renderStep(); };
+        list.appendChild(el);
+      });
+      wrap.appendChild(list);
+    }
+
+    if(questionMeta.type === 'bool'){
+      const list = document.createElement('div');
+      list.className = 'option-list';
+      [["yes","Yes — I can commit"],["no","No — I can't guarantee that"]].forEach(([v,label])=>{
+        const el = document.createElement('div');
+        el.className = 'option' + (state.data.availability === v ? ' selected' : '');
+        el.textContent = label;
+        el.onclick = () => { state.data.availability = v; renderStep(); };
+        list.appendChild(el);
+      });
+      wrap.appendChild(list);
+    }
+
+    body.appendChild(wrap);
+  }
+
+  document.getElementById('prevBtn').disabled = state.step === 0;
+  const nextBtn = document.getElementById('nextBtn');
+  nextBtn.textContent = s.type === 'review' ? (state.submitting ? "Submitting…" : "Submit application") : "Next →";
+  updateNextEnabled();
+}
+
+function currentStepMeta(){
+  const steps = buildSteps();
+  const s = steps[state.step];
+  if(s.type === 'dynamic') return Object.assign({}, s, roleQuestion());
+  return s;
+}
+
+function updateNextEnabled(){
+  const s = currentStepMeta();
+  const nextBtn = document.getElementById('nextBtn');
+  if(s.type === 'review'){ nextBtn.disabled = state.submitting; return; }
+  if(s.optional){ nextBtn.disabled = false; return; }
+  let val = state.data[s.key];
+  nextBtn.disabled = !val || (typeof val === 'string' && val.trim().length === 0);
+}
+
+function renderReview(){
+  const rows = [
+    ["Name", state.data.full_name],
+    ["Course / Year", state.data.course_year],
+    ["Phone", state.data.phone],
+    ["Role", state.data.role],
+    ["Work link", state.data.portfolio || "— none provided —"],
+    ["Role answer", state.data.role_answer],
+    ["Available for sprint", state.data.availability === 'yes' ? "Yes" : "No"],
+    ["Why this project", state.data.why],
+  ];
+  let html = `<div class="q-eyebrow">09 · Review</div><h3 class="q-title">Check everything, then submit.</h3><div class="review-list">`;
+  rows.forEach(([k,v]) => {
+    html += `<div class="review-row"><b>${k}</b><span>${escapeHtml(v || "—")}</span></div>`;
+  });
+  html += `</div><div id="submitStatus" style="margin-top:16px;"></div>`;
+  return html;
+}
+
+function escapeHtml(str){
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+function nextStep(){
+  const steps = buildSteps();
+  const s = steps[state.step];
+  if(s.type === 'review'){ submitApplication(); return; }
+  if(state.step < steps.length - 1){ state.step++; renderStep(); }
+}
+function prevStep(){
+  if(state.step > 0){ state.step--; renderStep(); }
+}
+
+async function submitApplication(){
+  const statusEl = document.getElementById('submitStatus');
+  if(!supabaseClient){
+    statusEl.innerHTML = `<div class="status-msg error">Supabase isn't configured yet. Add SUPABASE_URL and SUPABASE_ANON_KEY at the top of the script.</div>`;
+    return;
+  }
+  state.submitting = true;
+  document.getElementById('nextBtn').textContent = "Submitting…";
+  document.getElementById('nextBtn').disabled = true;
+  statusEl.innerHTML = `<div class="status-msg">Sending…</div>`;
+
+  const payload = {
+    full_name: state.data.full_name,
+    course_year: state.data.course_year,
+    phone: state.data.phone,
+    role: state.data.role,
+    portfolio: state.data.portfolio || null,
+    role_answer: state.data.role_answer,
+    availability: state.data.availability === 'yes',
+    why_project: state.data.why,
+    created_at: new Date().toISOString(),
+  };
+
+  const { error } = await supabaseClient.from(TABLE_NAME).insert([payload]);
+  state.submitting = false;
+
+  if(error){
+    statusEl.innerHTML = `<div class="status-msg error">Couldn't submit: ${escapeHtml(error.message)}</div>`;
+    document.getElementById('nextBtn').textContent = "Submit application";
+    document.getElementById('nextBtn').disabled = false;
+    return;
+  }
+
+  document.getElementById('formBody').innerHTML = `
+    <div class="success-wrap">
+      <div class="mark">✅</div>
+      <h3 class="q-title" style="text-align:center;">Application received.</h3>
+      <p class="q-help" style="text-align:center;">We'll reach out on WhatsApp if it's a fit. Thanks for putting real work into this.</p>
+      <button class="nav-btn primary" onclick="resetForm()">Back to start</button>
+    </div>`;
+  document.querySelector('.nav-row').style.display = 'none';
+}
+
+function resetForm(){
+  state = { step:0, data:{}, submitting:false };
+  document.querySelector('.nav-row').style.display = 'flex';
+  goTo('landing');
+}
+
+/* ---------------- ADMIN ---------------- */
+let allApplications = [];
+let currentRoleFilter = 'all';
+
+async function checkAdminSession(){
+  if(!supabaseClient){
+    document.getElementById('adminStatus').innerHTML = `<div class="status-msg error">Supabase isn't configured yet.</div>`;
+    return;
+  }
+  const { data } = await supabaseClient.auth.getSession();
+  if(data && data.session){
+    showAdminDash(data.session.user.email);
+  } else {
+    document.getElementById('adminLoginCard').style.display = 'block';
+    document.getElementById('adminDash').style.display = 'none';
+  }
+}
+
+async function adminLogin(){
+  const email = document.getElementById('adminEmail').value.trim();
+  const password = document.getElementById('adminPassword').value;
+  const statusEl = document.getElementById('adminStatus');
+  if(!supabaseClient){
+    statusEl.innerHTML = `<div class="status-msg error">Supabase isn't configured yet.</div>`;
+    return;
+  }
+  statusEl.innerHTML = `<div class="status-msg">Signing in…</div>`;
+  const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+  if(error){
+    statusEl.innerHTML = `<div class="status-msg error">${escapeHtml(error.message)}</div>`;
+    return;
+  }
+  statusEl.innerHTML = `<div class="status-msg ok">Signed in.</div>`;
+  showAdminDash(data.user.email);
+}
+
+async function adminLogout(){
+  if(supabaseClient){ await supabaseClient.auth.signOut(); }
+  document.getElementById('adminLoginCard').style.display = 'block';
+  document.getElementById('adminDash').style.display = 'none';
+}
+
+async function showAdminDash(email){
+  document.getElementById('adminLoginCard').style.display = 'none';
+  document.getElementById('adminDash').style.display = 'flex';
+  document.getElementById('adminEmailLabel').textContent = email;
+  await loadApplications();
+}
+
+async function loadApplications(){
+  const wrap = document.getElementById('adminTableWrap');
+  wrap.innerHTML = `<div class="empty-state">Loading applications…</div>`;
+  const { data, error } = await supabaseClient.from(TABLE_NAME).select('*').order('created_at', { ascending:false });
+  if(error){
+    wrap.innerHTML = `<div class="empty-state">Couldn't load applications: ${escapeHtml(error.message)}</div>`;
+    return;
+  }
+  allApplications = data || [];
+  renderTable();
+}
+
+function filterRole(role){
+  currentRoleFilter = role;
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.role === role));
+  renderTable();
+}
+
+function renderTable(){
+  const wrap = document.getElementById('adminTableWrap');
+  const rows = currentRoleFilter === 'all' ? allApplications : allApplications.filter(r => r.role === currentRoleFilter);
+  if(rows.length === 0){
+    wrap.innerHTML = `<div class="empty-state">No applications yet for this filter.</div>`;
+    return;
+  }
+  let html = `<table><thead><tr>
+    <th>Name</th><th>Role</th><th>Course/Year</th><th>Phone</th><th>Work link</th>
+    <th>Role answer</th><th>Sprint?</th><th>Why</th><th>Submitted</th>
+  </tr></thead><tbody>`;
+  rows.forEach(r => {
+    html += `<tr>
+      <td>${escapeHtml(r.full_name)}</td>
+      <td>${escapeHtml(r.role)}</td>
+      <td>${escapeHtml(r.course_year)}</td>
+      <td>${escapeHtml(r.phone)}</td>
+      <td>${r.portfolio ? `<a class="linkcell" href="${escapeHtml(r.portfolio)}" target="_blank">link ↗</a>` : "—"}</td>
+      <td style="max-width:220px;">${escapeHtml(r.role_answer)}</td>
+      <td><span class="pill ${r.availability ? 'yes' : 'no'}">${r.availability ? 'YES' : 'NO'}</span></td>
+      <td style="max-width:220px;">${escapeHtml(r.why_project)}</td>
+      <td style="white-space:nowrap;">${r.created_at ? new Date(r.created_at).toLocaleDateString() : ""}</td>
+    </tr>`;
+  });
+  html += `</tbody></table>`;
+  wrap.innerHTML = html;
+}
+
+renderStep();
+</script>
+</body>
+</html>
