@@ -21,4 +21,5 @@ We are looking for team members with interest or experience in:
 Ready to contribute? Please fill out our [Link to your Recruitment Form] to share your interests, skills, and availability.
 
 ---
-*Questions? Feel free to reach out to the project lead [Your Name] via [Your Contact/Handle].*
+
+
